@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  sb-app:
+    build: .
+    container_name: "docker-app"
+    ports:
+      - 5000:5000
+  mongodb:
+    image: mongo:4.4.7
+    container_name: "mongodb"
+    ports:
+      - 27017:27017
+  frontend-app:
+    image: frontend-app
+    container_name: frontend-app
+    build:
+      context: ./front-end
+    ports:
+      - "4200:80"
+    depends_on:
+      - sb-app
