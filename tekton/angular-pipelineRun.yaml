@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: angular-pipeline-run
+spec:
+  serviceAccountName: docker-login
+  pipelineRef:
+    name: angular-pipeline
+  params:
+    - name: ANGULAR_APP_IMAGE
+      value: "aymeniset/frontend-app:latest"  
+    - name: TAG
+      value: "latest"  
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi

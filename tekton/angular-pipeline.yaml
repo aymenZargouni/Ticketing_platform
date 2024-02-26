@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: angular-pipeline
+spec:
+  params:
+    - name: ANGULAR_APP_IMAGE
+      description: Image for Angular Frontend App
+      type: string
+      default: "aymeniset/frontend-app"
+    - name: TAG
+      description: Preferred tag
+      default: latest
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: fetch-angular-source
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: https://github.com/aymenZargouni/Ticketing_platform.git
+        - name: revision
+          value: master
+        - name: subdirectory
+          value: ""
+        - name: deleteExisting
+          value: "true"
+    - name: containerize-angular-app
+      taskRef:
+        name: buildah
+      runAfter:
+        - fetch-angular-source
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: IMAGE
+          value: "$(params.ANGULAR_APP_IMAGE):$(params.TAG)"
+        - name: CONTEXT
+          value: "front-end"  # Adjust the context to match the Angular build output directory
+        - name: FORMAT
+          value: "docker"
+    - name: deploy-angular-app
+      taskRef:
+        name: kubernetes-actions
+      runAfter:
+        - containerize-angular-app
+      params:
+        - name: script
+          value: |
+            kubectl apply --filename https://raw.githubusercontent.com/aymenZargouni/Ticketing_platform/master/manifest/deployment-angular.yaml
+      workspaces:
+        - name: manifest-dir
+          workspace: shared-workspace

@@ -1,18 +1,25 @@
-# Étape de construction de l'application Angular
+# Step 1: Node.js base image
 FROM node:latest as builder
 
 WORKDIR /app
 
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --verbose
+
+# Copy the rest of your application code
 COPY . .
 
-RUN npm install
+# Build your application
 RUN npm run build --prod
 
-# Étape de construction de l'image Nginx
+# Step 2: Nginx setup
 FROM nginx:alpine
 
-# Copier les fichiers construits de l'étape précédente dans le répertoire de l'hôte Nginx
+# Copy built assets from builder stage
 COPY --from=builder /app/dist/* /usr/share/nginx/html/
 
-# Copier la configuration nginx personnalisée
-COPY src/nginx/etc/conf.d/default.conf /etc/nginx/conf.d/default.conf
+# Optional: Copy custom Nginx configuration
+COPY src/nginx/etc/conf.d/default.conf /etc/nginx/conf.d/

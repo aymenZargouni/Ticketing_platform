@@ -1,0 +1,72 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: spring-boot-pipeline
+spec:
+  params:
+    - name: SPRING_BOOT_IMAGE
+      description: Image for Spring Boot
+      type: string
+      default: "aymeniset/backend-sb-app"
+    - name: TAG
+      description: Preferred tag
+      default: latest
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: fetch-spring-boot
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: https://github.com/aymenZargouni/Ticketing_platform.git
+        - name: revision
+          value: master  # Specify the branch to clone, if necessary
+        - name: subdirectory
+          value: ""  # Adjusted to point to the Spring Boot app's backend folder
+        - name: deleteExisting
+          value: "true"
+    - name: build-spring-boot-jar
+      runAfter:
+        - fetch-spring-boot  # Assuming this is the step where your repo is cloned
+      taskSpec:
+        steps:
+          - name: mvn-package
+            image: maven:3.8.4-openjdk-17  # Use the appropriate Maven and JDK version
+            script: |
+              #!/bin/bash
+              cd /workspace/output/backend  # Adjust path if necessary
+              mvn clean package  # This generates the sb-app.jar file in the target directory
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+    - name: build-spring-boot
+      taskRef:
+        name: buildah
+      runAfter:
+        - build-spring-boot-jar
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: IMAGE
+          value: "$(params.SPRING_BOOT_IMAGE):$(params.TAG)"
+        - name: CONTEXT
+          value: "backend" 
+        - name: FORMAT
+          value: "docker"
+    - name: create-deployment
+      taskRef:
+        name: kubernetes-actions
+      runAfter:
+        - build-spring-boot
+      params:
+        - name: script
+          value: |
+            kubectl apply --filename https://raw.githubusercontent.com/aymenZargouni/Ticketing_platform/master/manifest/deployment-sb_app.yaml
+      workspaces:
+        - name: manifest-dir
+          workspace: shared-workspace
