@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: docker-app
-          image: aymeniset/backend-sb-app
+          image: aymeniset/backend-sb-app:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
