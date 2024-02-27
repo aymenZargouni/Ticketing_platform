@@ -15,6 +15,7 @@ spec:
       containers:
         - name: frontend-app
           image: aymeniset/frontend-app
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
 ---
