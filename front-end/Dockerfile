@@ -1,11 +1,3 @@
-# Step 1: Node.js base image
-FROM node:latest as builder
-
-WORKDIR /app
-
-# Copy the rest of your application code
-COPY . .
-
 # Step 2: Nginx setup
 FROM nginx:alpine
 
