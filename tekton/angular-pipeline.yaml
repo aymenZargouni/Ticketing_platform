@@ -12,36 +12,53 @@ spec:
       description: Preferred tag
       default: latest
   workspaces:
-    - name: shared-workspace
+    - name: angular-workspace 
   tasks:
     - name: fetch-angular-source
       taskRef:
         name: git-clone
       workspaces:
         - name: output
-          workspace: shared-workspace
+          workspace: angular-workspace
       params:
         - name: url
           value: https://github.com/aymenZargouni/Ticketing_platform.git
         - name: revision
-          value: master
+          value: "master"
         - name: subdirectory
           value: ""
         - name: deleteExisting
           value: "true"
+    - name: build-angular-app
+      runAfter:
+        - fetch-angular-source
+      taskSpec:
+        workspaces:
+          - name: output 
+        steps:
+          - name: npm-install-and-build
+            image: node:latest
+            workingDir: "$(workspaces.output.path)/front-end"
+            script: |
+              #!/bin/sh
+              npm install
+              npm run build
+      workspaces:
+        - name: output
+          workspace: angular-workspace
     - name: containerize-angular-app
       taskRef:
         name: buildah
       runAfter:
-        - fetch-angular-source
+        - build-angular-app
       workspaces:
         - name: source
-          workspace: shared-workspace
+          workspace: angular-workspace
       params:
         - name: IMAGE
           value: "$(params.ANGULAR_APP_IMAGE):$(params.TAG)"
         - name: CONTEXT
-          value: "front-end"  # Adjust the context to match the Angular build output directory
+          value: "front-end"  
         - name: FORMAT
           value: "docker"
     - name: deploy-angular-app
@@ -55,4 +72,4 @@ spec:
             kubectl apply --filename https://raw.githubusercontent.com/aymenZargouni/Ticketing_platform/master/manifest/deployment-angular.yaml
       workspaces:
         - name: manifest-dir
-          workspace: shared-workspace
+          workspace: angular-workspace

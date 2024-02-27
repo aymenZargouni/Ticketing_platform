@@ -8,11 +8,11 @@ spec:
     name: angular-pipeline
   params:
     - name: ANGULAR_APP_IMAGE
-      value: "aymeniset/frontend-app:latest"  
+      value: "aymeniset/frontend-app"  
     - name: TAG
       value: "latest"  
   workspaces:
-    - name: shared-workspace
+    - name: angular-workspace
       volumeClaimTemplate:
         spec:
           accessModes:
