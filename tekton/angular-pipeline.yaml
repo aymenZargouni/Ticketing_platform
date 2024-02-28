@@ -69,6 +69,8 @@ spec:
       params:
         - name: script
           value: |
+            kubectl delete deployment frontend-deployment
+            kubectl delete service frontend-service
             kubectl apply --filename https://raw.githubusercontent.com/aymenZargouni/Ticketing_platform/master/manifest/deployment-angular.yaml
       workspaces:
         - name: manifest-dir

@@ -66,6 +66,8 @@ spec:
       params:
         - name: script
           value: |
+            kubectl delete deployment app-deployment
+            kubectl delete service app-service
             kubectl apply --filename https://raw.githubusercontent.com/aymenZargouni/Ticketing_platform/master/manifest/deployment-sb_app.yaml
       workspaces:
         - name: manifest-dir
